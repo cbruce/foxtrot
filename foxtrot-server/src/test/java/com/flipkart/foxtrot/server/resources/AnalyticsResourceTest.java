@@ -101,7 +101,7 @@ public class AnalyticsResourceTest extends ResourceTest {
         TestUtils.registerActions(analyticsLoader, mapper);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         queryExecutor = new QueryExecutor(analyticsLoader, executorService);
-        List<Document> documents = TestUtils.getGroupDocuments(mapper);
+        List<Document> documents = TestUtils.getGroupDocuments();
         queryStore.save(TestUtils.TEST_TABLE_NAME, documents);
         for (Document document : documents) {
             elasticsearchServer.getClient().admin().indices()

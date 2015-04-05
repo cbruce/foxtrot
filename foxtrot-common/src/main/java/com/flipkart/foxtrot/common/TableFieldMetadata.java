@@ -22,14 +22,14 @@ import java.util.Set;
 /**
  * Created by rishabh.goyal on 06/05/14.
  */
-public class TableFieldMapping {
+public class TableFieldMetadata {
     private String table;
-    private Set<FieldTypeMapping> mappings;
+    private Set<FieldMetadata> mappings;
 
-    public TableFieldMapping() {
+    public TableFieldMetadata() {
     }
 
-    public TableFieldMapping(String table, Set<FieldTypeMapping> mappings) {
+    public TableFieldMetadata(String table, Set<FieldMetadata> mappings) {
         this.table = table;
         this.mappings = mappings;
     }
@@ -42,11 +42,11 @@ public class TableFieldMapping {
         this.table = table;
     }
 
-    public Set<FieldTypeMapping> getMappings() {
+    public Set<FieldMetadata> getMappings() {
         return mappings;
     }
 
-    public void setMappings(Set<FieldTypeMapping> mappings) {
+    public void setMappings(Set<FieldMetadata> mappings) {
         this.mappings = mappings;
     }
 

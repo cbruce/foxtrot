@@ -77,7 +77,7 @@ public class NonCacheableActionTest {
         TestUtils.registerActions(analyticsLoader, mapper);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         queryExecutor = new QueryExecutor(analyticsLoader, executorService);
-        queryStore.save(TestUtils.TEST_TABLE_NAME, TestUtils.getQueryDocuments(mapper));
+        queryStore.save(TestUtils.TEST_TABLE_NAME, TestUtils.getQueryDocuments());
     }
 
     @After

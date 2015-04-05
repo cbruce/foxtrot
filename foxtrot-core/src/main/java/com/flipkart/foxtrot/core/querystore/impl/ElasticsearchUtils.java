@@ -15,8 +15,11 @@
  */
 package com.flipkart.foxtrot.core.querystore.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.foxtrot.common.ActionRequest;
+import com.flipkart.foxtrot.common.FieldType;
+import com.flipkart.foxtrot.common.FieldMetadata;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.core.common.PeriodSelector;
 import com.google.common.annotations.VisibleForTesting;
@@ -25,6 +28,7 @@ import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateReque
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.IndicesAdminClient;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormat;
@@ -32,7 +36,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
@@ -189,5 +194,31 @@ public class ElasticsearchUtils {
         } else {
             return null;
         }
+    }
+
+    public static Set<FieldMetadata> getFieldMetadata(MappingMetaData metaData) throws IOException {
+        JsonNode jsonNode = mapper.valueToTree(metaData.getSourceAsMap());
+        return generateFieldMetadata(null, jsonNode.get("properties"));
+    }
+
+    private static Set<FieldMetadata> generateFieldMetadata(String parentField, JsonNode jsonNode) {
+        Set<FieldMetadata> fieldMetadataSet = new HashSet<FieldMetadata>();
+        Iterator<Map.Entry<String, JsonNode>> iterator = jsonNode.fields();
+        while (iterator.hasNext()) {
+            Map.Entry<String, JsonNode> entry = iterator.next();
+            String currentField = (parentField == null) ? entry.getKey() : (String.format("%s.%s", parentField, entry.getKey()));
+            if (entry.getValue().has("properties")) {
+                fieldMetadataSet.addAll(generateFieldMetadata(currentField, entry.getValue().get("properties")));
+            } else {
+                FieldType fieldType = getFieldType(entry.getValue().get("type"));
+                fieldMetadataSet.add(new FieldMetadata(currentField, fieldType));
+            }
+        }
+        return fieldMetadataSet;
+    }
+
+    private static FieldType getFieldType(JsonNode jsonNode) {
+        String type = jsonNode.asText();
+        return FieldType.valueOf(type.toUpperCase());
     }
 }

@@ -68,7 +68,7 @@ public class DistinctActionTest {
         TestUtils.registerActions(analyticsLoader, mapper);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         queryExecutor = new QueryExecutor(analyticsLoader, executorService);
-        List<Document> documents = TestUtils.getDistinctDocuments(mapper);
+        List<Document> documents = TestUtils.getDistinctDocuments();
 
         queryStore.save(TestUtils.TEST_TABLE_NAME, documents);
         for (Document document : documents) {

@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.foxtrot.common.Document;
 import com.flipkart.foxtrot.common.FieldType;
-import com.flipkart.foxtrot.common.FieldTypeMapping;
-import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.common.FieldMetadata;
+import com.flipkart.foxtrot.common.TableFieldMetadata;
 import com.flipkart.foxtrot.core.MockElasticsearchServer;
 import com.flipkart.foxtrot.core.TestUtils;
 import com.flipkart.foxtrot.core.datastore.DataStore;
@@ -238,20 +238,20 @@ public class ElasticsearchQueryStoreTest {
 
     @Test
     public void testGetFieldMappings() throws QueryStoreException, InterruptedException {
-        queryStore.save(TestUtils.TEST_TABLE_NAME, TestUtils.getMappingDocuments(mapper));
+        queryStore.save(TestUtils.TEST_TABLE_NAME, TestUtils.getMappingDocuments());
         Thread.sleep(500);
 
-        Set<FieldTypeMapping> mappings = new HashSet<FieldTypeMapping>();
-        mappings.add(new FieldTypeMapping("word", FieldType.STRING));
-        mappings.add(new FieldTypeMapping("data.data", FieldType.STRING));
-        mappings.add(new FieldTypeMapping("header.hello", FieldType.STRING));
-        mappings.add(new FieldTypeMapping("head.hello", FieldType.LONG));
+        Set<FieldMetadata> mappings = new HashSet<FieldMetadata>();
+        mappings.add(new FieldMetadata("word", FieldType.STRING));
+        mappings.add(new FieldMetadata("data.data", FieldType.STRING));
+        mappings.add(new FieldMetadata("header.hello", FieldType.STRING));
+        mappings.add(new FieldMetadata("head.hello", FieldType.LONG));
 
-        TableFieldMapping tableFieldMapping = new TableFieldMapping(TestUtils.TEST_TABLE_NAME, mappings);
-        TableFieldMapping responseMapping = queryStore.getFieldMappings(TestUtils.TEST_TABLE_NAME);
+        TableFieldMetadata tableFieldMetadata = new TableFieldMetadata(TestUtils.TEST_TABLE_NAME, mappings);
+        TableFieldMetadata responseMapping = queryStore.getFieldMappings(TestUtils.TEST_TABLE_NAME);
 
-        assertEquals(tableFieldMapping.getTable(), responseMapping.getTable());
-        assertTrue(tableFieldMapping.getMappings().equals(responseMapping.getMappings()));
+        assertEquals(tableFieldMetadata.getTable(), responseMapping.getTable());
+        assertTrue(tableFieldMetadata.getMappings().equals(responseMapping.getMappings()));
     }
 
     @Test
@@ -266,8 +266,8 @@ public class ElasticsearchQueryStoreTest {
 
     @Test
     public void testGetFieldMappingsNoDocumentsInTable() throws QueryStoreException {
-        TableFieldMapping request = new TableFieldMapping(TestUtils.TEST_TABLE_NAME, new HashSet<FieldTypeMapping>());
-        TableFieldMapping response = queryStore.getFieldMappings(TestUtils.TEST_TABLE_NAME);
+        TableFieldMetadata request = new TableFieldMetadata(TestUtils.TEST_TABLE_NAME, new HashSet<FieldMetadata>());
+        TableFieldMetadata response = queryStore.getFieldMappings(TestUtils.TEST_TABLE_NAME);
 
         assertEquals(request.getTable(), response.getTable());
         assertTrue(request.getMappings().equals(response.getMappings()));

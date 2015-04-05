@@ -22,14 +22,14 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 /**
  * Created by rishabh.goyal on 06/05/14.
  */
-public class FieldTypeMapping {
+public class FieldMetadata {
     private String field;
     private FieldType type;
 
-    public FieldTypeMapping() {
+    public FieldMetadata() {
     }
 
-    public FieldTypeMapping(String field, FieldType type) {
+    public FieldMetadata(String field, FieldType type) {
         this.field = field;
         this.type = type;
     }
@@ -62,7 +62,7 @@ public class FieldTypeMapping {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        FieldTypeMapping rhs = (FieldTypeMapping) obj;
+        FieldMetadata rhs = (FieldMetadata) obj;
         return new EqualsBuilder()
                 .append(this.field, rhs.field)
                 .append(this.type, rhs.type)

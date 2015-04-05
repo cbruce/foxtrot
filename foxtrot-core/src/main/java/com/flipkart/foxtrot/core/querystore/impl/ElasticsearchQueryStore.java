@@ -16,14 +16,12 @@
 package com.flipkart.foxtrot.core.querystore.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.foxtrot.common.Document;
-import com.flipkart.foxtrot.common.FieldTypeMapping;
+import com.flipkart.foxtrot.common.FieldMetadata;
 import com.flipkart.foxtrot.common.Table;
-import com.flipkart.foxtrot.common.TableFieldMapping;
+import com.flipkart.foxtrot.common.TableFieldMetadata;
 import com.flipkart.foxtrot.core.datastore.DataStore;
 import com.flipkart.foxtrot.core.datastore.DataStoreException;
-import com.flipkart.foxtrot.core.parsers.ElasticsearchMappingParser;
 import com.flipkart.foxtrot.core.querystore.QueryStore;
 import com.flipkart.foxtrot.core.querystore.QueryStoreException;
 import com.flipkart.foxtrot.core.querystore.TableMetadataManager;
@@ -46,6 +44,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.flipkart.foxtrot.core.querystore.impl.ElasticsearchUtils.getFieldMetadata;
+import static com.flipkart.foxtrot.core.querystore.impl.ElasticsearchUtils.getMapper;
+
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
  * Date: 14/03/14
@@ -57,7 +58,6 @@ public class ElasticsearchQueryStore implements QueryStore {
     private final TableMetadataManager tableMetadataManager;
     private final ElasticsearchConnection connection;
     private final DataStore dataStore;
-    private final ObjectMapper mapper;
 
 
     public ElasticsearchQueryStore(TableMetadataManager tableMetadataManager,
@@ -66,7 +66,6 @@ public class ElasticsearchQueryStore implements QueryStore {
         this.tableMetadataManager = tableMetadataManager;
         this.connection = connection;
         this.dataStore = dataStore;
-        this.mapper = ElasticsearchUtils.getMapper();
     }
 
     @Override
@@ -90,7 +89,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                     .setType(ElasticsearchUtils.TYPE_NAME)
                     .setId(document.getId())
                     .setTimestamp(Long.toString(timestamp))
-                    .setSource(mapper.writeValueAsBytes(document.getData()))
+                    .setSource(getMapper().writeValueAsBytes(document.getData()))
                     .setConsistencyLevel(WriteConsistencyLevel.QUORUM)
                     .execute()
                     .get(2, TimeUnit.SECONDS);
@@ -144,7 +143,7 @@ public class ElasticsearchQueryStore implements QueryStore {
                         .type(ElasticsearchUtils.TYPE_NAME)
                         .id(document.getId())
                         .timestamp(Long.toString(timestamp))
-                        .source(mapper.writeValueAsBytes(document.getData()));
+                        .source(getMapper().writeValueAsBytes(document.getData()));
                 bulkRequestBuilder.add(indexRequest);
             }
             if (bulkRequestBuilder.numberOfActions() > 0){
@@ -160,7 +159,8 @@ public class ElasticsearchQueryStore implements QueryStore {
                     BulkItemResponse itemResponse = responses.getItems()[i];
                     failedCount += (itemResponse.isFailed() ? 1 : 0);
                     if (itemResponse.isFailed()) {
-                        logger.error(String.format("Table : %s Failure Message : %s Document : %s", table, itemResponse.getFailureMessage(), mapper.writeValueAsString(documents.get(i))));
+                        logger.error(String.format("Table : %s Failure Message : %s Document : %s",
+                                table, itemResponse.getFailureMessage(), getMapper().writeValueAsString(documents.get(i))));
                     }
                 }
                 if (failedCount > 0) {
@@ -238,7 +238,7 @@ public class ElasticsearchQueryStore implements QueryStore {
     }
 
     @Override
-    public TableFieldMapping getFieldMappings(String table) throws QueryStoreException {
+    public TableFieldMetadata getFieldMappings(String table) throws QueryStoreException {
         table = ElasticsearchUtils.getValidTableName(table);
         try {
             if (!tableMetadataManager.exists(table)) {
@@ -246,16 +246,15 @@ public class ElasticsearchQueryStore implements QueryStore {
                         "No table exists with the name: " + table);
             }
 
-            ElasticsearchMappingParser mappingParser = new ElasticsearchMappingParser(mapper);
-            Set<FieldTypeMapping> mappings = new HashSet<FieldTypeMapping>();
+            Set<FieldMetadata> fieldMetadata = new HashSet<FieldMetadata>();
             GetMappingsResponse mappingsResponse = connection.getClient().admin()
                     .indices().prepareGetMappings(ElasticsearchUtils.getIndices(table)).execute().actionGet();
 
             for (ObjectCursor<String> index : mappingsResponse.getMappings().keys()) {
                 MappingMetaData mappingData = mappingsResponse.mappings().get(index.value).get(ElasticsearchUtils.TYPE_NAME);
-                mappings.addAll(mappingParser.getFieldMappings(mappingData));
+                fieldMetadata.addAll(getFieldMetadata(mappingData));
             }
-            return new TableFieldMapping(table, mappings);
+            return new TableFieldMetadata(table, fieldMetadata);
         } catch (QueryStoreException ex) {
             throw ex;
         } catch (Exception ex) {

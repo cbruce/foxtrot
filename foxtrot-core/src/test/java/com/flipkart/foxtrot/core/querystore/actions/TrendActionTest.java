@@ -87,7 +87,7 @@ public class TrendActionTest {
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         queryExecutor = new QueryExecutor(analyticsLoader, executorService);
         queryStore = new ElasticsearchQueryStore(tableMetadataManager, elasticsearchConnection, dataStore);
-        List<Document> documents = TestUtils.getTrendDocuments(mapper);
+        List<Document> documents = TestUtils.getTrendDocuments();
         queryStore.save(TestUtils.TEST_TABLE_NAME, documents);
         for (Document document : documents) {
             elasticsearchServer.getClient().admin().indices()
@@ -162,7 +162,7 @@ public class TrendActionTest {
 
     @Test
     public void testTrendActionFieldWithDot() throws QueryStoreException, JsonProcessingException {
-        Document document = TestUtils.getDocument("G", 1398653118006L, new Object[]{"data.version", 1}, mapper);
+        Document document = TestUtils.getDocument("G", 1398653118006L, new Object[]{"data.version", 1});
         queryStore.save(TestUtils.TEST_TABLE_NAME, document);
         elasticsearchServer.getClient().admin().indices()
                 .prepareRefresh(ElasticsearchUtils.getCurrentIndex(TestUtils.TEST_TABLE_NAME, document.getTimestamp()))
