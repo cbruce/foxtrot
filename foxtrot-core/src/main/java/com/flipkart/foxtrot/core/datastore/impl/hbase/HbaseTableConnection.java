@@ -18,7 +18,6 @@ package com.flipkart.foxtrot.core.datastore.impl.hbase;
 import com.flipkart.foxtrot.common.Table;
 import com.flipkart.foxtrot.core.datastore.DataStoreException;
 import com.flipkart.foxtrot.core.util.TableUtil;
-import com.google.common.base.Strings;
 import com.yammer.dropwizard.lifecycle.Managed;
 import net.sourceforge.cobertura.CoverageIgnore;
 import org.apache.hadoop.conf.Configuration;
